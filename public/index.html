@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Book Management</title>
+</head>
+<body>
+  <h1>Book Management</h1>
+  
+  <form id="bookForm">
+    <label for="title">Title:</label>
+    <input type="text" id="title" name="title" required><br>
+    
+    <label for="author">Author:</label>
+    <input type="text" id="author" name="author" required><br>
+    
+    <!-- Add more book fields as needed -->
+    
+    <button type="submit" name="action" value="add" > Add Book</button>
+    <button type="submit" name="action" value="view">View Books</button>
+  </form>
+
+  <div id="bookData"></div>
+
+  <script>
+    const bookForm = document.getElementById('bookForm');
+    const bookDataElement = document.getElementById('bookData');
+   // const book = Object.fromEntries(formData.entries());
+
+    bookForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      console.log("event listner");
+      const formData = new FormData(bookForm);
+      const book = Object.fromEntries(formData.entries());
+
+      const action = formData.get('action');
+      console.log(action);
+      if (action === 'add') {
+        console.log("add");
+      } else{
+        console.log("view");
+         viewBooksFromMongoDB();
+       addBookToMongoDB(book);
+      }
+    });
+
+    function addBookToMongoDB(book) {
+      fetch('http://localhost:3003/add-book', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(book)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+        alert('Book added to MongoDB');
+      })
+      .catch(error => {
+        console.error('Error adding book:', error);
+        alert('Error adding book');
+      });
+    }
+
+    function viewBooksFromMongoDB() {
+      fetch('http://localhost:3003/view-books')
+        .then(response => response.json())
+        .then(data => {
+          let html = '<ul>';
+          data.forEach(book => {
+            html += `<li>${book.title} by ${book.author}</li>`;
+            // Add more book properties as needed
+          });
+          html += '</ul>';
+          bookDataElement.innerHTML = html;
+        })
+        .catch(error => console.error('Error loading books:', error));
+    }
+  </script>
+</body>
+</html>
